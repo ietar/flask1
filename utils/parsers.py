@@ -1,5 +1,6 @@
 from flask_restful import reqparse
 import flask_restful.inputs as fri
+import re
 
 
 # user get用parser
@@ -29,7 +30,25 @@ text_parser.add_argument('bool', type=fri.boolean)
 
 # token用parser
 token_parser = reqparse.RequestParser()
-token_parser.add_argument('id', location='form', nullable=False)
+token_parser.add_argument('user_id', location='form', nullable=False)
 token_parser.add_argument('pw', location='form', nullable=False)
 token_parser.add_argument('refresh', type=fri.boolean)  # 1 刷新 0 不刷新
 token_parser.add_argument('token', location='form')
+
+
+def mobile(mobile_str):
+    mobile_str = str(mobile_str)
+    p = r'\d{11}'
+    pattern = re.compile(p)
+    if pattern.fullmatch(mobile_str):
+        return mobile_str
+    else:
+        raise TypeError(f"pattern {p} doesn't match")
+
+
+comment_parser = reqparse.RequestParser()
+comment_parser.add_argument('comment_id')
+comment_parser.add_argument('user_id')
+comment_parser.add_argument('comment')
+comment_parser.add_argument('token')
+

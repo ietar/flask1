@@ -30,7 +30,9 @@ class User1(db.Model):
     status = db.Column(db.SmallInteger, default=1)
     salt = db.Column(db.String(64), nullable=False, default='')
     token = db.Column(db.String(128), nullable=True)
-    token_expire = db.Column(db.DateTime, nullable=True, default=datetime.datetime.now())
+    token_expire = db.Column(db.DateTime, nullable=True, default=datetime.datetime.utcnow())
+
+    comment = db.relationship('Comment', primaryjoin='User1.user_id==foreign(Comment.user_id)', uselist=True)
 
 
 class User2(db.Model):
@@ -60,3 +62,15 @@ class User3(db.Model):
     account = db.Column(db.String(16))
     email = db.Column(db.String(16))
     status = db.Column(db.SmallInteger, default=1)
+
+
+class Comment(db.Model):
+
+    __tablename__ = 'comment'
+    comment_id = db.Column('comment_id', db.Integer, primary_key=True)
+    user_id = db.Column('user_id', db.Integer, nullable=True)
+    # user_id = db.Column('user_id', db.Integer, db.ForeignKey('user_basic.user_id'), nullable=True)
+    comment = db.Column(db.Text)
+    ts = db.Column(db.DateTime, nullable=True, default=datetime.datetime.utcnow())
+
+    user = db.relationship('User1', primaryjoin='Comment.user_id==foreign(User1.user_id)')
