@@ -8,15 +8,29 @@ from sqlalchemy.orm import load_only, contains_eager
 # from sqlalchemy import or_, and_, not_, func
 import time
 import datetime
+# import traceback
+from flask_limiter import Limiter, HEADERS
+from flask_limiter.util import get_remote_address
 
-from exts import db
+
+from exts import db, app
 from all_models import User1, Comment
 from utils.tools import mk_salt, mk_pw
 from utils.parsers import get_user_parser, register_post_parser, text_parser, token_parser, comment_parser
 from utils.decorators import deco1, deco2
+from utils.ietar_limit import Limiter1
 
 
 fake_api_bp = Blueprint('fake_api', __name__, static_url_path='/s', static_folder='static')
+limiter = Limiter(app, key_func=get_remote_address, headers_enabled=True, storage_uri=app.config.get('REDIS_URI'))
+#  storage_uri 需要手动安装 pip install flask-redis
+limiter.header_mapping = {
+    HEADERS.LIMIT: 'X-My-Limit',
+    HEADERS.RESET: "X-My-Reset",
+    HEADERS.REMAINING: "X-My-Remaining"}
+# or by only partially specifying the overrides
+
+limiter1 = Limiter1(app)
 
 
 class JuiceResource(Resource):
@@ -59,6 +73,15 @@ class JuiceResource(Resource):
 
 class UserResource(Resource):
 
+    # method_decorators = {
+    #     'get': [limiter.limit('1/day'), ],
+    #     'post': [limiter.limit('2/day')]
+    # }
+    # method_decorators = [limiter.limit('1/day')]
+
+    # decorators = [limiter.limit('5/minute')]  # CBV只能用这个
+
+    @limiter1.limit(amount=5, many_interval=1, interval='min')
     def get(self):
         """
         获取用户信息
@@ -82,6 +105,8 @@ class UserResource(Resource):
                       'status': user1.status}
             res['data'].update(append)
         except Exception as e:
+            # print(traceback.format_exc())
+            # print(type(e))
             res['status'] = False
             res['msg'] = str(e)
             return make_response(jsonify(res), 500)
@@ -158,6 +183,7 @@ class UserResource(Resource):
         return make_response(jsonify(res))
 
 
+# @limiter.limit(limit_value='1 per day')
 class UserTokenResource(Resource):
 
     def get(self):
@@ -333,3 +359,14 @@ api.add_resource(JuiceResource, r'/juice')
 api.add_resource(UserResource, r'/user')
 api.add_resource(UserTokenResource, r'/user/token')
 api.add_resource(CommentResource, r'/comment')
+
+
+@fake_api_bp.route(r'/')
+@limiter.limit('1/day')
+def fake():
+    return '121'
+
+
+# @app.route('/221', methods=['post'])
+# def p221():
+#     return 'p221'

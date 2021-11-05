@@ -5,7 +5,7 @@ import re
 
 # user get用parser
 get_user_parser = reqparse.RequestParser()
-get_user_parser.add_argument('account')
+get_user_parser.add_argument('account', required=True)
 get_user_parser.add_argument('token')
 
 

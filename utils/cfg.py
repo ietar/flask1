@@ -12,3 +12,5 @@ class DefaultConfig(object):
     USER_TOKEN_EXPIRE = 3600 * 24
     # DEBUG = False
     DEBUG = True
+    JSON_AS_ASCII = False
+    REDIS_URI = r'redis://127.0.0.1:6379/15'

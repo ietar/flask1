@@ -4,8 +4,13 @@ from exts import app
 # from utils.cfg import SqlAlchemyConfig
 from fake_api.views import fake_api_bp
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+lt = Limiter(app, key_func=get_remote_address)
 
 @app.route('/')
+@lt.limit('1/day')
 def index():
     return 'this is a flask app'
 
